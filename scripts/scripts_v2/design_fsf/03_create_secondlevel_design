@@ -1,0 +1,49 @@
+#!/bin/bash
+
+#This script is used copy and modify design.fsf files for the feat First Level Analysis for each subject and each run
+	# to use this script, create a Feat design.fsf file for one run of a subject and save in ./scripts
+	# open the saved design.fsf using gedit or nano
+	# 1. replace all subject values, e.g., dpk16ahr.... with SUBJECT
+	# 2. Onces all values are replaced in the design.fsf, save file as a unique designsecond_template.fsf in ./scripts/design_fsf/templates/firstlevel/
+	# 3. then modify the variable name below
+	
+
+#ahrb folder
+	ahrb=/nfs/turbo/ahrb-data
+
+# FSL_Analysis folder
+	fsl=$ahrb/FSL_Analysis
+
+# Design .fsf template name/location
+	design=$fsl/scripts/design_fsf/templates/second_level/designsecond_template.fsf
+
+
+# Create subject list from $FSL directory
+for subj in $(cat $fsl/scripts/design_fsf/00_subjectslist_secondlevel.txt ) ; do
+echo " ###################################################################### "
+echo 
+echo "  Modifying Second Level design.fsf files for $subj"
+echo
+echo " ####################################################################### "		
+	if [ ! -d $fsl/Subjects/$subj/model/SecondLevel/ ] ; then
+		echo
+		echo "		making [model/Secondlevel] directory.....  "
+		mkdir $fsl/Subjects/$subj/model/SecondLevel/
+        	echo "                                             .....OK"			
+	else
+		echo
+		echo "Second Level folder exists... creating design.fsf file"
+		echo 		
+	fi
+
+	echo "		copying design.fsf template to $subj/model/secondlevel folder... "
+	cp $design $fsl/Subjects/$subj/model/SecondLevel/designsecond.fsf
+        echo "                                                              		...OK"
+
+
+	echo "		replacing values in copied template with $subj"
+		sed -i "s/SUBJECT/$subj/g" "$fsl/Subjects/$subj/model/SecondLevel/designsecond.fsf"
+	echo "		.....all variables replaced for $subject run $run..."
+
+
+done

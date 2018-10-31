@@ -1,0 +1,29 @@
+#!/bin/bash
+
+ds008=$HOME/Projects/ds008
+
+cd $ds008
+subjects=$(ls -d sub???)
+
+for subject in $subjects ; do
+#                for bold_file in $(find $subjects/BOLD -name bold.nii.gz) ; do
+        	echo " "
+		echo "$subject"
+		echo " "
+		find $subject/BOLD -name bold.nii.gz
+#	done
+ done
+
+#subjects=$(ls -d sub???)
+#for subject in $subjects ; do
+#	for task in {01..03} ; do
+#		for run in {01..03} ; do
+#		if [ -s $subject/BOLD/task0${task}_run0$run/bold.nii.gz ] ; then
+#			echo " "
+#			echo "$subject"
+#			echo "  "
+#			echo "$(find $subject/BOLD -name bold.nii.gz)"
+#fi
+#		done
+#	done
+# done

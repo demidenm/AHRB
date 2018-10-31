@@ -1,0 +1,607 @@
+#!/bin/bash
+		## This script DRAFTED by [Michael Demidenko]
+# This script reads the image/header files for MID, Faces, Resting State & DTI *.nii files
+# Using a combination of fslinfo and awk, dim1-dim4 + pixdim1-pixdim4 obtained
+# Values are stored in variables and confirmed whether correct.
+# Red warning is produced when value is out of range
+
+
+ahrb=/nfs/turbo/ahrb-data
+# sourcing info
+	source $ahrb/Scripts/source/ahrb_config
+# Set work directory
+work_dir=$ahrb/work_dir
+
+
+# for each subject in the list of subjects
+for subject in $(ls $work_dir ) ; do
+  subj_header $subject
+
+######
+######
+#  MID
+######
+######
+
+for run in 01 02 ; do
+	if [ -d $work_dir/$subject/func/mid/run_$run ] ; then
+	echo
+	echo "MID run_$run......................................................"
+
+##using fslinfo to pull values from run_##.nii, storing all 'dim ' using grep
+	dims=$(fslinfo $work_dir/$subject/func/mid/run_$run/run_$run.nii)
+
+##above stored in dims in long format. Pulling each value by columb #
+	dim1=$(echo $dims | awk '{ print $4 }') 
+	dim2=$(echo $dims | awk '{ print $6 }')
+	dim3=$(echo $dims | awk '{ print $8 }')
+        dim4=$(echo $dims | awk '{ print $10 }')
+        pixdim1=$(echo $dims | awk '{ print $14 }')
+        pixdim2=$(echo $dims | awk '{ print $16 }')
+        pixdim3=$(echo $dims | awk '{ print $18 }')
+        pixdim4=$(echo $dims | awk '{ print $20 }')
+
+##Once information is set using above, script checks if
+##Checking DIMS 1 - DIMS 4 
+echo "Checking header fslinfo *.nii dim values...."
+		if [ "$dim1" != "90" ] ; then
+		echo
+		indent "${bred}X-axis Slices $dim1 = INCORRECT ${recol}"
+		echo
+		else
+		indent "X-axis slices $dim1 = OK"
+		fi
+                if [ "$dim2" != "90" ] ; then
+                echo
+                indent "${bred}Y-axis Slices $dim2 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Y-axis slices $dim2 = OK"
+                fi
+                if [ "$dim3" != "60" ] ; then
+                echo
+                indent "${bred}Z-axis Slices $dim3 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Z-axis slices $dim3 = OK"
+                fi
+                if [ "$dim4" != "407" ] ; then
+                echo
+                indent "${bred}Total Volumes $dim4 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Total Volumes $dim4 = OK"
+                fi
+## CHECKING PIXDIMS 1 - PIXDIMS 4
+echo "Checking header fslinfo *.nii pixdim values...."
+
+		if [ "$pixdim1" != "2.400000" ] ; then
+                echo
+                indent "${bred}X-Voxel Size $pixdim1 = INCORRECT ${recol}"
+                echo
+                else
+                indent "X-Voxel Size $pixdim1 = OK"
+                fi
+                if [ "$pixdim2" != "2.400000" ] ; then
+                echo
+                indent "${bred}Y-Voxel Size $pixdim2 = INCORRECT ${recol}"
+                echo
+                else
+                echo "Y-Voxel Size $pixdim2 = OK"
+                fi
+                if [ "$pixdim3" != "2.400000" ] ; then
+                echo
+                indent "${bred}Z-Voxel Size $pixdim3 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Z-Voxel Size $pixdim3 = OK"
+                fi
+                if [ "$pixdim4" != "0.800000" ] ; then
+                echo
+		indent "${bred}Repetition Time (TR)  $pixdim4 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Repetition Time (TR) $pixdim4 = OK"
+                fi
+
+	
+	else
+	echo
+	indent "${bred}MID run_$run = DOESN'T EXIST.....skipping ${recol}"
+	echo 
+	fi
+done
+
+
+######
+######
+# FACES
+######
+######
+
+for run in 01 02 ; do
+        if [ -d $work_dir/$subject/func/faces/run_$run ] ; then
+        echo
+	echo "FACES run_$run...................................................."
+        
+
+##using fslinfo to pull values from run_##.nii, storing all 'dim ' using grep
+        dims=$(fslinfo $work_dir/$subject/func/faces/run_$run/run_$run.nii)
+
+##above stored in dims in long format. Pulling each value by column #
+        dim1=$(echo $dims | awk '{ print $4 }')
+        dim2=$(echo $dims | awk '{ print $6 }')
+        dim3=$(echo $dims | awk '{ print $8 }')
+        dim4=$(echo $dims | awk '{ print $10 }')
+        pixdim1=$(echo $dims | awk '{ print $14 }')
+        pixdim2=$(echo $dims | awk '{ print $16 }')
+        pixdim3=$(echo $dims | awk '{ print $18 }')
+        pixdim4=$(echo $dims | awk '{ print $20 }')
+
+##Once information is set using above, script checks if
+##Checking DIMS 1 - DIMS 4
+echo "Checking header fslinfo *.nii dim values...."
+
+                if [ "$dim1" != "90" ] ; then
+                echo
+                indent "${bred}X-axis Slices $dim1 = INCORRECT ${recol}"
+                echo
+                else
+                indent "X-axis slices $dim1 = OK"
+                fi
+                if [ "$dim2" != "90" ] ; then
+                echo
+                indent "${bred}Y-axis Slices $dim2 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Y-axis slices $dim2 = OK"
+                fi
+                if [ "$dim3" != "60" ] ; then
+                echo
+                indent "${bred}Z-axis Slices $dim3 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Z-axis slices $dim3 = OK"
+                fi
+                if [ "$dim4" != "723" ] ; then
+                echo
+                indent "${bred}Total Volumes $dim4 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Total Volumes $dim4 = OK"
+                fi
+## CHECKING PIXDIMS 1 - PIXDIMS 4
+echo "Checking header fslinfo *.nii pixdim values...."
+
+                if [ "$pixdim1" != "2.400000" ] ; then
+                echo
+                indent "${bred}X-Voxel Size $pixdim1 = INCORRECT ${recol}"
+                echo
+                else
+                indent "X-Voxel Size $pixdim1 = OK"
+                fi
+                if [ "$pixdim2" != "2.400000" ] ; then
+                echo
+                indent "${bred}Y-Voxel Size $pixdim2 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Y-Voxel Size $pixdim2 = OK"
+                fi
+                if [ "$pixdim3" != "2.400000" ] ; then
+                echo
+                indent "${bred}Z-Voxel Size $pixdim3 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Z-Voxel Size $pixdim3 = OK"
+                fi
+                if [ "$pixdim4" != "0.800000" ] ; then
+                echo
+                indent "${bred}Repetition Time [TR]  $pixdim4 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Repetition Time [TR] $pixdim4 = OK"
+                fi
+
+
+        else
+        echo
+        indent "${bred}FACES run_$run = DOESN'T EXIST.....skipping ${recol}"
+        echo
+        fi
+done
+
+
+
+######
+######
+#  Resting State
+######
+######
+
+for run in 01 02 ; do
+        if [ -d $work_dir/$subject/func/resting/run_$run ] ; then
+        echo "Resting State run_$run............................................"
+
+##using fslinfo to pull values from run_##.nii, storing all 'dim ' using grep
+        dims=$(fslinfo $work_dir/$subject/func/resting/run_$run/run_$run.nii)
+
+##above stored in dims in long format. Pulling each value by columb #
+        dim1=$(echo $dims | awk '{ print $4 }')
+        dim2=$(echo $dims | awk '{ print $6 }')
+        dim3=$(echo $dims | awk '{ print $8 }')
+        dim4=$(echo $dims | awk '{ print $10 }')
+        pixdim1=$(echo $dims | awk '{ print $14 }')
+        pixdim2=$(echo $dims | awk '{ print $16 }')
+        pixdim3=$(echo $dims | awk '{ print $18 }')
+        pixdim4=$(echo $dims | awk '{ print $20 }')
+
+##Once information is set using above, script checks if
+##Checking DIMS 1 - DIMS 4
+echo "Checking header fslinfo *.nii dim values...."
+
+                if [ "$dim1" != "90" ] ; then
+                echo
+                indent "${bred}X-axis Slices $dim1 = INCORRECT ${recol}"
+                echo
+                else
+                indent "X-axis slices $dim1 = OK"
+                fi
+                if [ "$dim2" != "90" ] ; then
+                echo
+                indent "${bred}Y-axis Slices $dim2 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Y-axis slices $dim2 = OK"
+                fi
+                if [ "$dim3" != "60" ] ; then
+                echo
+                indent "${bred}Z-axis Slices $dim3 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Z-axis slices $dim3 = OK"
+                fi
+                if [ "$dim4" != "600" ] ; then
+                echo
+                indent "${bred}Total Volumes $dim4 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Total Volumes $dim4 = OK"
+                fi
+## CHECKING PIXDIMS 1 - PIXDIMS 4
+echo "Checking header fslinfo *.nii pixdim values...."
+
+                if [ "$pixdim1" != "2.400000" ] ; then
+                echo
+                indent "${bred}X-Voxel Size $pixdim1 = INCORRECT ${recol}"
+                echo
+                else
+                indent "X-Voxel Size $pixdim1 = OK"
+                fi
+                if [ "$pixdim2" != "2.400000" ] ; then
+                echo
+                indent "${bred}Y-Voxel Size $pixdim2 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Y-Voxel Size $pixdim2 = OK"
+                fi
+                if [ "$pixdim3" != "2.400000" ] ; then
+                echo
+                indent "${bred}Z-Voxel Size $pixdim3 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Z-Voxel Size $pixdim3 = OK"
+                fi
+                if [ "$pixdim4" != "0.800000" ] ; then
+                echo
+                indent "${bred}Repetition Time (TR)  $pixdim4 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Repetition Time (TR) $pixdim4 = OK"
+                fi
+
+
+        else
+        echo
+        indent "${bred}Resting State run_$run = DOESN'T EXIST.....skipping ${recol}"
+        echo
+        fi
+done
+
+
+
+######
+######
+#  DTI
+######
+######
+
+for run in 01 02 ; do
+        if [ -d $work_dir/$subject/DTI/dti/run_$run ] ; then
+        echo
+	echo "DTI run_$run......................................................"
+
+##using fslinfo to pull values from run_##.nii, storing all 'dim ' using grep
+        dims=$(fslinfo $work_dir/$subject/DTI/dti/run_$run/run_$run.nii)
+
+##above stored in dims in long format. Pulling each value by columb #
+        dim1=$(echo $dims | awk '{ print $4 }')
+        dim2=$(echo $dims | awk '{ print $6 }')
+        dim3=$(echo $dims | awk '{ print $8 }')
+        dim4=$(echo $dims | awk '{ print $10 }')
+        pixdim1=$(echo $dims | awk '{ print $14 }')
+        pixdim2=$(echo $dims | awk '{ print $16 }')
+        pixdim3=$(echo $dims | awk '{ print $18 }')
+        pixdim4=$(echo $dims | awk '{ print $20 }')
+
+##Once information is set using above, script checks if
+##Checking DIMS 1 - DIMS 4
+echo "Checking header fslinfo *.nii dim values...."
+
+                if [ "$dim1" != "140" ] ; then
+                echo
+                ident "${bred}X-axis Slices $dim1 = INCORRECT ${recol}"
+                echo
+                else
+                indent "X-axis slices $dim1 = OK"
+                fi
+                if [ "$dim2" != "140" ] ; then
+                echo
+                indent "${bred}Y-axis Slices $dim2 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Y-axis slices $dim2 = OK"
+                fi
+                if [ "$dim3" != "81" ] ; then
+                echo
+                indent "${bred}Z-axis Slices $dim3 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Z-axis slices $dim3 = OK"
+                fi
+                if [ "$dim4" != "102" ] ; then
+                echo
+                indent "${bred}Total Volumes $dim4 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Total Volumes $dim4 = OK"
+                fi
+## CHECKING PIXDIMS 1 - PIXDIMS 4
+echo "Checking header fslinfo *.nii pixdim values...."
+
+                if [ "$pixdim1" != "1.714286" ] ; then
+                echo
+                indent "${bred}X-Voxel Size $pixdim1 = INCORRECT ${recol}"
+                echo
+                else
+                indent "X-Voxel Size $pixdim1 = OK"
+                fi
+                if [ "$pixdim2" != "1.714286" ] ; then
+                echo
+                indent "${bred}Y-Voxel Size $pixdim2 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Y-Voxel Size $pixdim2 = OK"
+                fi
+                if [ "$pixdim3" != "1.700000" ] ; then
+                echo
+                indent "${bred}Z-Voxel Size $pixdim3 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Z-Voxel Size $pixdim3 = OK"
+                fi
+                if [ "$pixdim4" != "4.100000" ] ; then
+                echo
+                indent "${bred}Repetition Time (TR)  $pixdim4 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Repetition Time (TR) $pixdim4 = OK"
+                fi
+
+
+        else
+        echo
+        indent "${bred}DTI run_$run = DOESN'T EXIST.....skipping ${recol}"
+        echo
+        fi
+done
+
+
+######
+######
+#  Anatomy t1overlay
+######
+######
+if [ -d $work_dir/$subject/anatomy/t1overlay_60sl ] ; then
+        echo
+	echo "Anatomy t1overlay................................................."
+
+##using fslinfo to pull values from run_##.nii, storing all 'dim ' using grep
+        dims=$(fslinfo $work_dir/$subject/anatomy/t1overlay_60sl/t1overlay_60sl.nii)
+
+##above stored in dims in long format. Pulling each value by columb #
+        dim1=$(echo $dims | awk '{ print $4 }')
+        dim2=$(echo $dims | awk '{ print $6 }')
+        dim3=$(echo $dims | awk '{ print $8 }')
+        dim4=$(echo $dims | awk '{ print $10 }')
+        pixdim1=$(echo $dims | awk '{ print $14 }')
+        pixdim2=$(echo $dims | awk '{ print $16 }')
+        pixdim3=$(echo $dims | awk '{ print $18 }')
+        pixdim4=$(echo $dims | awk '{ print $20 }')
+
+##Once information is set using above, script checks if
+##Checking DIMS 1 - DIMS 4
+echo "Checking header fslinfo *.nii dim values...."
+
+                if [ "$dim1" != "256" ] ; then
+                echo
+                indent "${bred}X-axis Slices $dim1 = INCORRECT ${recol}"
+                echo
+                else
+                indent "X-axis slices $dim1 = OK"
+                fi
+                if [ "$dim2" != "256" ] ; then
+                echo
+                indent "${bred}Y-axis Slices $dim2 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Y-axis slices $dim2 = OK"
+                fi
+                if [ "$dim3" != "60" ] ; then
+                echo
+                indent "${bred}Z-axis Slices $dim3 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Z-axis slices $dim3 = OK"
+                fi
+                if [ "$dim4" != "1" ] ; then
+                echo
+                indent "${bred}Total Volumes $dim4 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Total Volumes $dim4 = OK"
+                fi
+## CHECKING PIXDIMS 1 - PIXDIMS 4
+echo "Checking header fslinfo *.nii pixdim values...."
+
+                if [ "$pixdim1" != "0.843800" ] ; then
+                echo
+                indent "${bred}X-Voxel Size $pixdim1 = INCORRECT ${recol}"
+                echo
+                else
+                indent "X-Voxel Size $pixdim1 = OK"
+                fi
+                if [ "$pixdim2" != "0.843800" ] ; then
+                echo
+                indent "${bred}Y-Voxel Size $pixdim2 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Y-Voxel Size $pixdim2 = OK"
+                fi
+                if [ "$pixdim3" != "2.400000" ] ; then
+                echo
+                indent "${bred}Z-Voxel Size $pixdim3 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Z-Voxel Size $pixdim3 = OK"
+                fi
+                if [ "$pixdim4" != "2.297220" ] ; then
+                echo
+                indent "${bred}Repetition Time [TR]  $pixdim4 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Repetition Time [TR] $pixdim4 = OK"
+                fi
+
+
+        else
+        echo
+        indent "${bred}Anatomy t1overlay_60sl = DOESN'T EXIST.....skipping ${recol}"
+        echo
+        fi
+
+
+######
+######
+#  T1spgr*
+######
+######
+if [ -d $work_dir/$subject/anatomy/t1spgr_208sl ] ; then
+        echo
+	echo "Anatomy ts1spgr_208sl............................................."
+
+##using fslinfo to pull values from run_##.nii, storing all 'dim ' using grep
+        dims=$(fslinfo $work_dir/$subject/anatomy/t1spgr_208sl/t1spgr_208sl.nii)
+
+##above stored in dims in long format. Pulling each value by columb #
+        dim1=$(echo $dims | awk '{ print $4 }')
+        dim2=$(echo $dims | awk '{ print $6 }')
+        dim3=$(echo $dims | awk '{ print $8 }')
+        dim4=$(echo $dims | awk '{ print $10 }')
+        pixdim1=$(echo $dims | awk '{ print $14 }')
+        pixdim2=$(echo $dims | awk '{ print $16 }')
+        pixdim3=$(echo $dims | awk '{ print $18 }')
+        pixdim4=$(echo $dims | awk '{ print $20 }')
+
+##Once information is set using above, script checks if
+##Checking DIMS 1 - DIMS 4
+echo "Checking header fslinfo *.nii dim values...."
+                if [ "$dim1" != "256" ] ; then
+                echo
+                indent "${bred}X-axis Slices $dim1 = INCORRECT ${recol}"
+                echo
+                else
+                indent "X-axis slices $dim1 = OK"
+                fi
+                if [ "$dim2" != "256" ] ; then
+                echo
+                indent "${bred}Y-axis Slices $dim2 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Y-axis slices $dim2 = OK"
+                fi
+                if [ "$dim3" != "208" ] ; then
+                echo
+                indent "${bred}Z-axis Slices $dim3 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Z-axis slices $dim3 = OK"
+                fi
+                if [ "$dim4" != "1" ] ; then
+                echo
+                indent "${bred}Total Volumes $dim4 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Total Volumes $dim4 = OK"
+                fi
+
+## CHECKING PIXDIMS 1 - PIXDIMS 4
+echo "Checking header fslinfo *.nii pixdim values...."
+
+                if [ "$pixdim1" != "1.000000" ] ; then
+                echo
+                indent "${bred}X-Voxel Size $pixdim1 = INCORRECT ${recol}"
+                echo
+                else
+                indent "X-Voxel Size $pixdim1 = OK"
+                fi
+                if [ "$pixdim2" != "1.000000" ] ; then
+                echo
+                indent "${bred}Y-Voxel Size $pixdim2 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Y-Voxel Size $pixdim2 = OK"
+                fi
+                if [ "$pixdim3" != "1.000000" ] ; then
+                echo
+                indent "${bred}Z-Voxel Size $pixdim3 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Z-Voxel Size $pixdim3 = OK"
+                fi
+                if [ "$pixdim4" != "0.006952" ] ; then
+                echo
+                indent "${bred}Repetition Time (TR)  $pixdim4 = INCORRECT ${recol}"
+                echo
+                else
+                indent "Repetition Time (TR) $pixdim4 = OK"
+                fi
+
+
+        else
+        echo
+        indent "${bred}Anatomy t1spgr_208sl = DOESN'T EXIST.....skipping ${recol}"
+        echo
+        fi
+done
+
+subj_num=$(ls /nfs/turbo/ahrb-data/work_dir | wc -l)
+echo
+echo
+echo -e "${bold}Volume, TR and Voxel check script has completed for $subj_num subjects in the work_dir directory.${RCol}"
+echo "Please refer to 'dim' to confirm the header dimensions are correct per MID, FACES, Resting State & DTI *.nii file"
+echo "	Pixdim section will provide voxel size & Time Repetition (TR) for the scan."
+echo
+echo "If there is an error, confirm that the respective .nii filing isn't missing."
+echo "If not missing, note the issue with header information for the subject."
+echo
+echo

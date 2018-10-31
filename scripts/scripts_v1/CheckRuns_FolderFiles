@@ -1,0 +1,271 @@
+#!/bin/bash
+
+#This script is used to check the the MRI data file structure for the MID and FACES Task
+#First steps checks where the appropriate MID/Faces run exists (run_01 and/or run_02
+#**IF** the run exists, the script thereafter  checks whether the two tasks, MID and FACES, have the all of 
+#of the necessary files within each run folder  (indicated at the end of script)
+#At each scripts initiation, the CheckRuns_FolderFiles.txt file is cleared and new report is is put into 
+	#its place. Once the script finishes running, the  content of the .txt report is email to below:
+
+#admin email address -- ***update accordingly**
+        address=demidenm@umich.edu
+
+#Part two examines whether the files exist to reconstruct/reproduce the run files
+
+#Identifying who is running script
+	person=$(whoami)
+
+#varable for ahrb files location
+	ahrb=/nfs/turbo/ahrb-data
+#create variable of data directory and navigate to it
+        work=$ahrb/work_dir
+	
+
+#Assiging the Missing_Files.txt file where missing information will be tracked.
+        Missing_log=$ahrb/Scripts/log/CheckRuns_FolderFiles.txt
+
+#Clearing previous logged info in  $Missing_log
+        truncate -s 0 $Missing_log
+#Color formating
+	#reset text
+	RCol='\e[0m'
+	#Bold text
+	Bold='\e[1;30m'
+	#blue bold
+	BBlu='\e[1;34m'
+	#High intensity bold red
+	BIRed='\e[1;91m'
+	#Underline Red
+	URed='\e[4;31m'
+
+#start script with printing date into the $Missing_log file
+echo "<This CheckRuns_FolderFiles script was ran on ${date} by $person for $part_dir subjects folders>"  >> $Missing_log
+echo 
+
+#create subject list from work_dir)
+for subject in $(ls $work ) ; do
+#****OR CAN****loop through subjects in text file 
+#for subject in $(cat /nfs/turbo/ahrb-data/Scripts/subjects.txt ) ; do
+
+echo -e "${BBlu}==============================================================================" 2>&1 | tee -a $Missing_log
+echo 2>&1 | tee -a $Missing_log
+echo "		Script running for Subject: $subject" 2>&1 | tee -a $Missing_log
+echo 2>&1 | tee -a $Missing_log
+echo "==============================================================================" 2>&1 | tee -a $Missing_log
+for task in mid faces ; do
+	for run in 01 02 ; do		
+	echo -e "${Bold}[[[[		Checking directory for $task run_$run		]]]]${RCol}" 2>&1 | tee -a $Missing_log
+	echo 2>&1 | tee -a $Missing_log
+	if [ -d $work/$subject/func/$task/run_$run/ ] ; then
+	echo ".....Run_$run for $task folder exists, checking files" 2>&1 | tee -a $Missing_log
+		for  files in $(cat $ahrb/Scripts/filelist_func.txt ) ; do
+		#Checking if ECG.dat, resp.dat, trigECG.dat, TrigResp.dat exist for Face & MID runs
+		if [ ! -s $work/$subject/func/$task/run_$run/$files ] ; then
+        	echo 2>&1 | tee -a $Missing_log
+        	echo -e "${BIRed}$task run_$run $files = MISSING ${RCol}" 2>&1 | tee -a $Missing_log
+		echo 2>&1 | tee -a $Missing_log
+		else
+        	echo 2>&1 | tee -a $Missing_log
+        	echo "$task run_$run $files = OK" 2>&1 | tee -a $Missing_log
+        	echo 2>&1 | tee -a $Missing_log
+		fi
+		done
+	else 
+	echo 2>&1 | tee -a $Missing_log
+	echo -e "${URed}############# WARNING: for $task Run_$run folder NOT found #############${RCol}" 2>&1 | tee -a $Missing_log
+	echo "____________________________________________________________________________" 2>&1 | tee -a $Missing_log
+	echo 2>&1 | tee -a $Missing_log
+	fi
+	done
+	done
+echo
+echo
+echo
+##################################################################################################
+# running for resting state
+#################################################################################################
+
+echo -e "${Bold}Checking resting_state files for $subject${RCol}" 2>&1 | tee -a $Missing_log
+ for run in 01 02 ; do
+        echo 2>&1 | tee -a $Missing_log
+        if [ -d $work/$subject/func/resting/run_$run/ ] ; then
+        echo ".....Run_$run for resting state folder exists, checking files" 2>&1 | tee -a $Missing_log
+                for  files in $(cat $ahrb/Scripts/filelist_func.txt ) ; do
+                #Checking if ECG.dat, resp.dat, trigECG.dat, TrigResp.dat exist for resting state
+                if [ ! -s $work/$subject/func/resting/run_$run/$files ] ; then
+                echo 2>&1 | tee -a $Missing_log
+                echo -e "${BIRed}Resting State run_$run $files = MISSING ${RCol}" 2>&1 | tee -a $Missing_log
+                echo 2>&1 | tee -a $Missing_log
+                else
+                echo 2>&1 | tee -a $Missing_log
+                echo "Resting State run_$run $files = OK" 2>&1 | tee -a $Missing_log
+                echo 2>&1 | tee -a $Missing_log
+                fi
+                done
+        else
+        echo 2>&1 | tee -a $Missing_log
+        echo -e "${URed}############# NOTE: Resting_state Run_$run folder NOT found #############${RCol}" 2>&1 | tee -a $Missing_log
+        echo "____________________________________________________________________________" 2>&1 | tee -a $Missing_log
+        echo 2>&1 | tee -a $Missing_log
+        fi
+        done
+
+echo
+echo
+echo
+#####################################################################################################
+#CHECKING ANATOMY FILES
+####################################################################################################
+echo -e "${Bold}Checking anatomy files for $subject${RCol}" 2>&1 | tee -a $Missing_log
+for anat in $(ls $work/$subject/anatomy/ ) ; do
+	if [ -s $work/$subject/anatomy/$anat/t1* ] ; then
+	echo 2>&1 | tee -a $Missing_log
+	echo "Anatomy file $anat  = OK" 2>&1 | tee -a $Missing_log
+	echo 2>&1 | tee -a $Missing_log
+	else 
+	echo 2>&1 | tee -a $Missing_log
+	echo -e "${URed}Anatomy file $anat = MISSING${RCol}" 2>&1 | tee -a $Missing_log
+	fi
+	if [ -d $work/$subject/anatomy/$anat/dicom ] ; then
+	echo 2>&1 | tee -a $Missing_log
+        echo "Anatomy $anat dicom folder  = OK" 2>&1 | tee -a $Missing_log
+        echo 2>&1 | tee -a $Missing_log
+	
+	else 
+        echo 2>&1 | tee -a $Missing_log
+        echo -e "${URed}Anatomy $anat dicom folder = MISSING${Rcol}" 2>&1 | tee -a $Missing_log	
+	fi
+done
+
+##Counting quantity of diacom files in anatomy folder t1overlay_60sl. Erroed echoed if = or > 59##
+t1overlayfiles=$(ls $work/$subject/anatomy/t1overlay_60sl/dicom | wc -l)
+t1spgrfiles=$(ls $work/$subject/anatomy/t1spgr_208sl/dicom | wc -l)
+	if [ "$t1overlayfiles" -le "59" ] ; then
+	echo 2>&1 | tee -a $Missing_log
+	echo -e "${URed}Anatomy t1overlay dicom files ($t1overlayfiles found) = Missing${RCol}" 2>&1 | tee -a $Missing_log
+	echo
+	else
+	echo 2>&1 | tee -a $Missing_log
+	echo "Anatomy t1overlay dicom files ($t1overlayfiles found) = OK" 2>&1 | tee -a $Missing_log
+	echo
+	fi
+	if [ "$t1spgrfiles" -le "207" ] ; then
+	echo 2>&1 | tee -a $Missing_log
+	echo -e "${URed}Anatomy t1spgr dicom files ($t1spgrfiles found) = Missing${RCol}" 2>&1 | tee -a $Missing_log
+	echo 
+	else 
+	echo 2>&1 | tee -a $Missing_log
+	echo "Anatomy t1spgr dicom files ($t1spgrfiles found) = OK" 2>&1 | tee -a $Missing_log
+	echo
+	fi
+echo
+echo
+echo
+###################################################################################################
+#CHECKING DTI Diffusion_Field_Map folder
+###################################################################################################
+echo -e "${Bold}Checking DTI Diffusion Field Map files for $subject${RCol}" 2>&1 | tee -a $Missing_log
+ for run in 01 02 ; do
+        echo 2>&1 | tee -a $Missing_log
+        if [ -d $work/$subject/DTI/diffusion_field_map/run_$run/ ] ; then
+        echo ".....Run_$run for Diffusion Field Map folder exists, checking files" 2>&1 | tee -a $Missing_log
+                for  files in $(cat $ahrb/Scripts/filelist_dti.txt ) ; do
+                #Checking if ECG.dat, resp.dat, trigECG.dat, TrigResp.dat exist for resting state
+                if [ ! -s $work/$subject/DTI/diffusion_field_map/run_$run/$files ] ; then
+                echo 2>&1 | tee -a $Missing_log
+                echo -e "${BIRed}Diffusion Field Map run_$run $files = MISSING ${RCol}" 2>&1 | tee -a $Missing_log
+                echo 2>&1 | tee -a $Missing_log
+                else
+                echo 2>&1 | tee -a $Missing_log
+                echo "Diffusion Field Map run_$run $files = OK" 2>&1 | tee -a $Missing_log
+                echo 2>&1 | tee -a $Missing_log
+                fi
+                done
+        else
+        echo 2>&1 | tee -a $Missing_log
+        echo -e "${URed}############# NOTE: Diffusion Field Map  Run_$run folder NOT found #############${RCol}" 2>&1 | tee -a $Missing_log
+        echo "____________________________________________________________________________" 2>&1 | tee -a $Missing_log
+        echo 2>&1 | tee -a $Missing_log
+        fi
+	done
+echo
+echo
+echo
+#######################################################################################################
+#Checking DTI run folder
+######################################################################################################
+echo -e "${Bold}Checking DTI run files for $subject${RCol}" 2>&1 | tee -a $Missing_log
+ for run in 01 02 ; do
+        echo 2>&1 | tee -a $Missing_log
+        if [ -d $work/$subject/DTI/dti/run_$run/ ] ; then
+        echo ".....Run_$run for DTI run folder exists, checking files" 2>&1 | tee -a $Missing_log
+                for  files in $(cat $ahrb/Scripts/filelist_dti.txt ) ; do
+                #Checking if ECG.dat, resp.dat, trigECG.dat, TrigResp.dat exist for resting state
+                if [ ! -s $work/$subject/DTI/dti/run_$run/$files ] ; then
+                echo 2>&1 | tee -a $Missing_log
+                echo -e "${BIRed}DTI run_$run $files = MISSING ${RCol}" 2>&1 | tee -a $Missing_log
+                echo 2>&1 | tee -a $Missing_log
+                else
+                echo 2>&1 | tee -a $Missing_log
+                echo "DTI run_$run $files = OK" 2>&1 | tee -a $Missing_log
+                echo 2>&1 | tee -a $Missing_log
+                fi
+		done
+		if [ ! -s $work/$subject/DTI/dti/run_$run/run_??.nii ] ; then
+		echo 2>&1 | tee -a $Missing_log
+                echo -e "${BIRed}DTI run_$run run_??.nii = MISSING ${RCol}" 2>&1 | tee -a $Missing_log
+                echo 2>&1 | tee -a $Missing_log
+                else
+                echo 2>&1 | tee -a $Missing_log
+                echo "DTI run_$run run_??.nii = OK" 2>&1 | tee -a $Missing_log
+                echo 2>&1 | tee -a $Missing_log
+                fi
+	else
+        echo 2>&1 | tee -a $Missing_log
+        echo -e "${URed}############# NOTE: DTI  Run_$run folder NOT found #############${RCol}" 2>&1 | tee -a $Missing_log
+        echo "____________________________________________________________________________" 2>&1 | tee -a $Missing_log
+        echo 2>&1 | tee -a $Missing_log
+	fi
+done
+
+###################################################################################################
+#CHECKING diacom/s* folders
+##################################################################################################
+echo -e "${Bold}Checking Dicom 5 s* folders for $subject${RCol}" 2>&1 | tee -a $Missing_log 
+for dicom in $(ls $work/$subject/dicom) ; do
+	if [ -d $work/$subject/dicom/$dicom ] ; then
+	echo 2>&1 | tee -a $Missing_log
+	echo "Dicom $dicom folder = OK" 
+	echo
+	else
+	echo 2>&1 | tee -a $Missing_log
+	echo -e "${BIRed}Dicom $dicom folder = MISSING${RCol}" 2>&1 | tee -a $Missing_log
+	echo
+	fi
+done
+
+done
+###################################################################################################
+#End of script email report and instructions
+###################################################################################################
+
+#Count of # of participant folders in work_dir directory
+part_dir=$(ls $work | wc -l)
+#After the script finishes running, the log file where information is sent is emailed  
+cat $Missing_log | mail -s "File Check on $(date) by $person" "$address"
+echo 
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo
+echo "The CheckRuns_FolderFiles script has FINISHED running for $part_dir subject folders."
+echo "A confirmation email has been sent to $address. "
+echo
+echo 
+echo "Step 1. Confirm for each participant the MID task MID has TWO runs, if runs are missing, please consult notes "
+echo "Step 2. Confirm for each participant the FACES task has ONE run, if it has less or more, please consult notes."
+echo "Step 3. Confirm for each participant the RESTING STATE has only ONE run, if it has less or more, please consult notes "
+echo "Step 4. Confirm that for each run folder MID, FACES and RESTING STATE contain the following files"
+echo "		        .._ECG.dat | .._resp.dat | .._TrigResp.dat | .._trigECG.dat" 
+echo "			P?????.? | run.##.nii | prun.##.nii" 
+echo "Step 5. Confirm that for each participant the anatomy has the t1overlay_60sl.nii + t1spgr_208sl.nii files."
+echo "To review the output in detail, please navigate to ./log & cat CheckRuns_FolderFiles.txt"
+echo

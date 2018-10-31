@@ -1,0 +1,54 @@
+#!/bin/bash
+
+#This script is used copy and modify design.fsf files for the feat First Level Analysis for each subject and each run
+	# to use this script, create a Feat design.fsf file for one run of a subject and save in ./scripts
+	# open the saved design.fsf using gedit or nano
+	# 1. replace all subject values, e.g., dpk16ahr.... with SUBJECT
+	# 2. replace all run specific values, e.g., run_01 or run01 with, run_RNNM and/or runRNNM
+	# 3. Onces all values are replaced in the design.fsf, save file as a unique designfirst_template.fsf in ./scripts/design_fsf/templates
+	# 4. then modify the variable name below
+	
+
+#ahrb folder
+	ahrb=/nfs/turbo/ahrb-data
+
+# FSL_Analysis folder
+	fsl=$ahrb/FSL_Analysis
+
+# Design .fsf template name/location
+	design=$fsl/scripts/design_fsf/templates/first_level
+
+# directory where participants anatomy and run files located
+	work_dir=$ahrb/work_dir
+
+# Create the design.fsf for subjects...
+todo=$fsl/scripts/design_fsf/$1 
+
+
+# Create subject list from $FSL directory
+for subj in $(cat $todo ) ; do
+echo " ###################################################################### "
+echo 
+echo "  Modifying First Level design.fsf files for $subj"
+echo
+echo " ###################################################################### "
+	for run in 01 02 ; do		
+	echo "		modifying for run_${run}......"
+	echo	
+	echo "		making [model/FirstLevel] directory.....  "
+	mkdir -p $fsl/Subjects/$subj/model/FirstLevel/
+        echo "                                             .....OK"
+
+	echo "		copying design.fsf template to $subj/model folder...OK"
+		
+		cp $design/designfirst_template.fsf /$fsl/Subjects/$subj/model/FirstLevel/designfirst_run${run}.fsf
+
+
+	echo "		replacing values in copied template with $subj and $run...."
+		sed -i "s/SUBJECT/$subj/g" "$fsl/Subjects/$subj/model/FirstLevel/designfirst_run${run}.fsf"
+                sed -i "s/RNNM/$run/g" "$fsl/Subjects/$subj/model/FirstLevel/designfirst_run${run}.fsf"
+
+	echo "		.....all variables replaced for $subject run $run..."
+
+	done
+done

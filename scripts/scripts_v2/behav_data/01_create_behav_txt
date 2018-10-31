@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# This script has two steps:
+	# Step 1: the behavioral data sets provided, the script will
+	#	pull subject specific info and place into file.
+	# Step 2: using the file created in step 1, the script will pull run 
+	#	and condition specific data a place in txt file in folder
+
+# ahrb directory
+ahrb=/nfs/turbo/ahrb-data
+
+# FSL analysis directory
+fsl=$ahrb/FSL_Analysis
+
+#behavioral data .csv 
+behav=$fsl/scripts/behav_data/mid_anticipation.csv
+
+# Pulling subject specific behavioral data 
+
+for subj in $(ls $fsl/Subjects/ ) ; do
+echo
+echo "###########################################################################"
+echo "		  Creating subject specific behavioral data for $subj"
+echo "###########################################################################"
+echo 
+	if [ -d $fsl/Subjects/$subj/behav_data ] ; then
+	echo "$subj behav_data folder exists! Creating files!"
+	else 
+	echo "		...$subj [behav_data] directory doesnt exist!"
+	echo "				...........creating directory"
+	mkdir $fsl/Subjects/$subj/behav_data/
+        echo " 		....directory created, continuing to create .txt files"
+	fi
+
+	cat $behav | grep $subj > $fsl/Subjects/$subj/behav_data/beh_data.txt
+	echo " Step 1: ${subj}'s behavioral data pulled and placed into subjects ./behav_data/beh_data.txt"
+	echo
+
+
+#Pulling run/condition specific information
+
+echo
+echo " Step 2: creating condition/run specific .txt behaviors files for $subj "
+	for run in 01 02 ; do
+	echo "....run ${run} "
+	#setting value for run in .txt file to get single numeric value, e.g., cutting off '0'
+	rn=$(echo $run | cut -c 2-)
+
+	# create text file for conditions: 1 = big win, 2 = small win, 3 = neutral, 4 = small lose, 5 = big lose
+	# WIN Big (1)
+		cat $fsl/Subjects/$subj/behav_data/beh_data.txt | egrep ${subj},${rn},1 | awk -F "," '{ print $20,$21,1 }' \
+		> $fsl/Subjects/$subj/func/mid/run_${run}/run${run}_WinBig.txt
+      			 echo "	[WIN Big] created for $subj run ${run}..."
+	# WIN Small (2)
+                cat $fsl/Subjects/$subj/behav_data/beh_data.txt | egrep ${subj},${rn},2 | awk -F "," '{ print $20,$21,1 }' \
+                > $fsl/Subjects/$subj/func/mid/run_${run}/run${run}_WinSmall.txt
+                         echo "	[WIN Small] created for $subj run ${run}..."
+
+        # Neutral (3)
+                cat $fsl/Subjects/$subj/behav_data/beh_data.txt | egrep ${subj},${rn},3 | awk -F "," '{ print $20,$21,1 }' \
+                > $fsl/Subjects/$subj/func/mid/run_${run}/run${run}_Neutral.txt
+                         echo "	[NEUTRAL] created for $subj run ${run}..."
+
+        # LOSE Small (4) 
+                cat $fsl/Subjects/$subj/behav_data/beh_data.txt | egrep ${subj},${rn},4 | awk -F "," '{ print $20,$21,1 }' \
+                > $fsl/Subjects/$subj/func/mid/run_${run}/run${run}_LoseSmall.txt
+                         echo "	[LOSE Small] created for $subj run ${run}..."
+        # LOSE Big (5)
+                cat $fsl/Subjects/$subj/behav_data/beh_data.txt | egrep ${subj},${rn},5 | awk -F "," '{ print $20,$21,1 }' \
+                > $fsl/Subjects/$subj/func/mid/run_${run}/run${run}_LoseBig.txt
+                         echo "	[LOSE Big] created for $subj ${run}..."
+	done
+done
+
+
+

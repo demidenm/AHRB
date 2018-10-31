@@ -1,0 +1,151 @@
+#!/bin/bash
+
+##### This script takes the data from OpenfMRI.org study ds008, creates the
+##### directory structure used by the UM fMRI Laboratory, and copies it into
+##### the customary UM structure.  -- bennet    Sun Jan 21 11:19:58 EST 2018
+#
+# The ds008 tasks are 'stop' for stop signal, and 'condstop' for conditional
+# stop signal.  For the anatomical file, I looked in the article, and it says
+# they collected a "T2-weighted matched-bandwidth high-resolution anatomical
+# scan (same slice prescription as EPI) and magnetization-prepared rapid
+# gradient echo (MP-RAGE)" image, so I would name the folder accordingly.
+#
+# <subject_id>
+#    |
+#    +------- /anatomy/t2_mprage/
+#    |                           highres001.nii.gz
+#
+# The following translation of the functional files seems right
+#
+# <subject_id>
+#    |
+#    +------- /func/
+#        |
+#        +--------- /stop/
+#        |
+#        +--------------- /run_01/
+#        |                       run_01.nii.gz
+#        |
+#        +--------------- /run_02/
+#        |                       run_02.nii.gz
+#        |
+#        +--------------- /run_03/
+#        |                       run_03.nii.gz
+#        |
+#        +--------- /condstop/
+#        |
+#        +--------------- /run_01/
+#        |                       run_01.nii.gz
+#        |
+#        +--------------- /run_02/
+#        |                       run_02.nii.gz
+#        |
+#        +--------------- /run_03/
+#        |                       run_03.nii.gz
+#
+# As examples, the current
+#    ds008/sub001/BOLD/task001_run001/bold.nii.gz
+# becomes
+#    ds008/sub001/func/stop/run_01/run_01.nii.gz
+# and the current
+#    ds008/sub001/BOLD/task002_run003/bold.nii.gz
+# becomes
+#    ds008/sub001func/condstop/run_03/run_03.nii.gz
+
+#### Set variables for the root names of the two projects
+ofmri=$HOME/Projects/ds008
+um=$HOME/Projects/UM
+
+# Create the new, UM folder
+
+# This is a handy trick to check whether a folder exists and create if not
+# The || is an 'or', so if the part on the left of it is true, the part on the
+# the right of it will not be done, whereas if the the statement on the left
+# side is false, then the statement on the right side will get done.
+
+test -d $um || mkdir $um
+
+# Change to the Openfmri data
+cd $ofmri
+
+# Get list of subjects
+subjects=$(ls -d sub???)
+
+# Anatomical data first, as that is easier
+#
+# Out high resolution anatomical scan is a T2 MPRAGE image, and UM
+# puts that information into the directory name
+
+# Do this once per subject
+for subject in $subjects ; do
+    # Do we have a UM subject folder?  If not, make one
+    test -d $um/$subject || mkdir $um/$subject
+    # The anatomical file name is long, and we use it several times, so put it in
+    # a variable
+    highres=$subject/anatomy/highres001.nii.gz
+    # Store the name of the UM destination folder
+    um_anat=$um/$subject/anatomy/t2_mprage
+    # check whether there is an anatomical file before doing anything
+    if [ -s $highres ] ; then
+        # first have to make the directory...
+        test -d $um_anat || mkdir -p $um_anat
+        # Do we really want to overwrite if the highres is already there?
+        if [ -s $um_anat/highres001.nii.gz ] ; then
+            echo "$um_anat/highres001.nii.gz exists!   Skipping..."
+        else
+            cp $highres $um_anat
+        fi
+    else
+        # We should print information in the case of missing data
+        echo
+        echo "Subject $subject was missing anatomy/highres001.nii.gz"
+        echo
+    fi
+done
+
+# Now the functional files
+#
+# task001 in ds008 is the stop task in UM
+# task002 in ds008 is the conditional stop task in UM
+
+tasks="stop condstop"
+
+for subject in $subjects ; do
+    echo
+    echo "================================================================"
+    echo "Processing $subject"
+    for task in $tasks ; do
+        echo "Task $task"
+        for run in {01..03} ; do
+            # This is where we make the correspondence of stop to 1, condstop to 2
+            if [ $task == "stop" ] ; then
+                bold_folder=$subject/BOLD/task001_run0$run
+                echo "Bold folder is $bold_folder"
+            fi
+            if [ $task == "condstop" ] ; then
+                bold_folder=$subject/BOLD/task002_run0$run
+                echo "Bold folder is $bold_folder"
+            fi
+            echo "   Run $run"
+            # Use a variable to save typos
+            run_folder=$um/$subject/func/$task/run_$run
+            echo "   Run folder is $run_folder"
+            # Only do something if there is a bold file in ds008
+            if [ -s $bold_folder/bold.nii.gz ] ; then
+                echo "    Copying  $bold_folder/bold.nii.gz"
+                echo "         to  $run_folder/run_$run.nii.gz"
+                # We have to create the directory first
+                test -d $run_folder || mkdir -p $run_folder
+                # then copy the file
+                cp $bold_folder/bold.nii.gz $run_folder/run_$run.nii.gz
+                if [ $? -eq 0 ] ; then
+                    echo "    Success!"
+                else
+                    echo "    ====>  Failed!"
+                fi
+            fi
+        done
+    done
+done
+echo "================================================================"
+echo

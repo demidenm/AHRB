@@ -1,0 +1,145 @@
+#!/bin/bash
+			## Script DRAFT [Michael Demidenko] ##
+## This script is used to loop through a list of subjects a review MID/FACES/ANATOMY image files
+## .nii files are opened using fslview view
+## At different stages of the script, the "echo -n" indicates a question that will require a response
+## the subsequent "read..." will capture this value into the appropriate variable
+## In some cases of y/n or good/bad, this response will  garner information about the quality of the file
+## the info for the subject,  task, run, quality and/or notes will be written to the Imge_Q file
+## at the end of each subject forloop, using the sed command, that subject will be removed from the list
+## this will prevent users from having to go back and update the $list variable .txt file
+
+ahrb=/nfs/turbo/ahrb-data
+
+source $ahrb/Scripts/source/ahrb_config
+
+#Set working directory
+work_dir=$ahrb/work_dir
+
+date=$(date)
+
+#Quality Check file
+Image_Q=/nfs/turbo/ahrb-data/Scripts/QC/${1}/MID_coreg_warp.csv
+
+#Subject list
+list=/nfs/turbo/ahrb-data/Scripts/QC/${1}/MID_coreg_warp.txt
+
+# MNI Brain
+mni=$ahrb/Scripts/masks/Template_T1_IXI555_MNI152.nii
+
+#For each subject, perform.....for each run (01 02)
+echo "Checking subjects listed in coreg_warp.txt file [located in $list]"
+echo
+
+
+
+for subject in $(cat $list ) ; do
+	subj_header $subject
+
+
+#########################
+###Checking MIDS  Runs
+#########################
+for run in 01 02 ; do
+
+echo
+echo
+	echo "Checking Coregistration MID for $Subject..."
+	if [ -s $work_dir/$subject/func/mid/run_$run/uprun_${run}.nii ] ; then
+
+	for anat in chht1spgr_208sl.nii cht1overlay_60sl.nii ; do
+		img_coreg=$work_dir/$subject/func/mid/run_$run/uprun_${run}.nii
+		img_anat=$work_dir/$subject/func/mid/preprocess/$anat
+		echo
+		echo "Checking run_${run} overlay with $anat"
+			fsleyes $img_anat $img_coreg -cm cool -dr 50 11000 -a 28
+echo
+echo
+	echo -n "Any Coregistration problems for MID uprun_$run & ${anat} for $subject? [y= yes; n = no; to e = exit ]? " 
+		read answer
+		answer=$(echo $answer | cut -c 1 | tr '[A-Z]' '[a-z]')
+	case $answer in
+		'n') 
+			indent "$subject MID uprun_$run.nii & $anat coreg = ${gre}GOOD${recol}" 
+			indent "Great, thank you."
+			indent "${subject}\tMID\trun_${run}\tuprun_${run}.nii over ${anat}\tGood\t${date}\t${USER}" >> $Image_Q
+			;;
+		'y')
+			indent "You indicated coregistration for $subject MID uprun_$run.nii & ${anat} = BAD" 
+			echo -n "Please provide a brief description of problem. Only use spaces and periods. Hit Return when complete.  "
+			read problem
+			indent "$subject MID run_$run uprun_$run.nii = ${bred}BAD. Reason: $problem${recol}"
+			indent "${subject}\tMID\trun_${run}\tuprun_${run}.nii over ${anat}\tBad\t${date}\t${USER}\t$problem" >> $Image_Q
+			indent "Great, thank you."
+			;;
+		'e')
+			echo "Quitting...."
+			exit 1
+			;;
+	esac
+		done
+	else
+		indent "${bred}For $subject MID run_$run, no uprun_$run.nii file found.${recol}"
+	fi
+
+##############
+## Warping Check
+##############
+echo
+echo       
+echo "Checking Warping MID..."
+       # if [ -s $work_dir/func/mid/run_${run}/w2* ] ; then
+	        img_warp=$work_dir/$subject/func/mid/run_$run/w2*
+      		fsleyes $mni $img_warp -cm cool -dr 50 11000 -a 28
+echo
+echo
+        echo -n "Any Warping problems for MID uprun_$run *.nii for $subject? [y= yes; n = no; to e = exit ]? " 
+                read answer
+                answer=$(echo $answer | cut -c 1 | tr '[A-Z]' '[a-z]')
+        case $answer in
+                'n') 
+                        indent "$subject MID run_$run 2.4uprun_$run.nii = ${gre}GOOD${recol}" 
+                        indent "Great, thank you."
+                        indent "${subject}\tMID\trun_${run}\tuprun_${run}.nii\tGood\t${date}\t${USER}" >> $Image_Q
+                        ;;
+                'y')
+                        indent "You indicated coregistration for $subject MID run_$run uprun_$run.nii = BAD" 
+                        echo -n "Please provide a brief description of problem. Only use spaces and periods. Hit Return when completed."
+                        read problem
+                        indent "$subject MID run_$run w2.4uprun_$run.nii = ${bred}BAD. Reason: $problem${recol}"
+                        indent "${subject}\tMID\trun_${run}\tw2.4uprun_${run}.nii\tBad\t${date}\t${USER}\t$problem" >> $Image_Q
+                        indent "Great, thank you."
+                       ;;
+                'e')
+                        echo "Quitting...."
+                        exit 1
+		esac
+       #else
+       #         indent "${bred}For $subject MID run_$run, no w2.4uprun_$run.nii file found. ${recol}"
+
+
+#        fi
+
+done
+
+## Confirms that the MID checks are completed
+## sed -i command removes the $subject from the .txt file that is assigned to the $list variable
+indent "MID coregistration & warping checks completed for $subject removed from subj list"
+
+sed -i "/${subject}/d" $list
+
+
+## Once subject is removed from the script, script asks whether or not to continue onto the next subect.
+echo -n "Continue on to next participant [y/n]?"
+	read cont
+	case $cont in
+		'y')
+			indent "Continuing....."
+			;;
+		'n')
+			echo
+	       		indent "Exiting image quality check script...."
+	      		exit 1
+			;;
+	esac
+done

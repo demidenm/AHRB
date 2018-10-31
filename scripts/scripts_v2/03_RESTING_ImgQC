@@ -1,0 +1,134 @@
+#!/bin/bash
+			## Script DRAFT [Michael Demidenko] ##
+## This script is used to loop through a list of subjects a review MID/FACES/ANATOMY image files
+## .nii files are opened using fslview view
+## At different stages of the script, the "echo -n" indicates a question that will require a response
+## the subsequent "read..." will capture this value into the appropriate variable
+## In some cases of y/n or good/bad, this response will  garner information about the quality of the file
+## the info for the subject,  task, run, quality and/or notes will be written to the Imge_Q file
+## at the end of each subject forloop, using the sed command, that subject will be removed from the list
+## this will prevent users from having to go back and update the $list variable .txt file
+
+ahrb=/nfs/turbo/ahrb-data
+
+source $ahrb/Scripts/source/ahrb_config
+
+#Set working directory
+work_dir=$ahrb/work_dir
+
+date=$(date)
+
+
+#Quality Check file
+Image_Q=/nfs/turbo/ahrb-data/Scripts/QC/${1}/RESTING_ImageQuality.csv
+
+#Subject list
+list=/nfs/turbo/ahrb-data/Scripts/QC/${1}/RESTING_ImageQ_subjects.txt
+
+#For each subject, perform.....for each run (01 02)
+echo "Checking subjects listed in ImageQ_subjects_rs.txt file [located in $list]"
+echo
+for subject in $(cat $list ) ; do
+	subj_header $subject
+
+##Next proceeds to the ANATOMICAL checks -- reviewing the homogeneity correct t1spgr and t1overlay files
+echo
+echo "Review Anatomical..."
+
+## The following echo -n function garners a response that is then used in "read answer"
+## This variable is that used in the subsequent if [] command to evalue the response and request/write info
+## to the .txt file accordingly. The items written include all subject/file info, quality, date and person
+
+#######################
+## Checking Structurals
+#######################
+
+for anat in t1spgr_208sl ; do
+        
+	if [ -s $work_dir/$subject/anatomy/$anat/h${anat}.nii ] ; then
+                fslview $work_dir/$subject/anatomy/$anat/h${anat}.nii
+        echo -n "Any problems with the Anatomy h${anat}.nii for $subject? [y= yes; n = no; to e = exit ]? "
+                read answer
+                answer=$(echo $answer | cut -c 1 | tr '[A-Z]' '[a-z]')
+        case $answer in
+                'n')
+                        indent "$subject Anatomy h${anat}.nii = ${gre}GOOD${recol}"
+                        indent "Great, thank you."
+                        indent "${subject}\tAnatomy\t${anat}.nii\th{anat}.nii\tGood\t${date}\t${USER}" >> $Image_Q
+                        ;;
+                'y')
+                        indent "You indicated that $subject Anatomy h${anat}.nii = BAD"
+                        echo -n "Please provide a brief description of problem. Only use spaces and periods. Hit Return when complete.  "
+                        read problem
+                        indent "$subject Anatomy h${anat}.nii = ${bred}BAD. Reason: $problem${recol}"
+                        indent "${subject}\t Anatomy\t${anat}\th${anat}.nii\Bad\t${date}\t${USER}\t$problem" >> $Image_Q
+                        indent "Great, thank you."
+                        ;;
+                'e')
+                        echo "Quitting...."
+                        exit 1
+                        ;;
+        esac
+        else
+                indent "${bred}For $subject Anatomy ${anat}, no h${anat}.nii file found.${recol}"
+        fi
+
+done
+
+#########################
+###Checking Resting State Runs
+#########################
+
+	echo "Checking resting state run for $Subject..."
+	if [ -s $work_dir/$subject/func/resting/run_01/uprun_01.nii ] ; then
+	fslview $work_dir/$subject/func/resting/run_01/uprun_01.nii
+
+
+	echo -n "Any problems with the Resting State uprun_01.nii for $subject? [y= yes; n = no; to e = exit ]? " 
+		read answer
+		answer=$(echo $answer | cut -c 1 | tr '[A-Z]' '[a-z]')
+	case $answer in
+		'n') 
+			indent "$subject Resting State uprun_01 uprun_01.nii = ${gre}GOOD${recol}" 
+			indent "Great, thank you."
+			indent "${subject}\tResting\trun_01\tuprun_01.nii\tGood\t${date}\t${USER}" >> $Image_Q
+			;;
+		'y')
+			indent "You indicated that $subject MID run_$run uprun_01.nii = BAD" 
+			echo -n "Please provide a brief description of problem. Only use spaces and periods. Hit Return when complete.  "
+			read problem
+			indent "$subject Resting State run_01 uprun_$run.nii = ${bred}BAD. Reason: $problem${recol}"
+			indent "${subject}\tResting\trun_01\tuprun_01.nii\tBad\t${date}\t${USER}\t$problem" >> $Image_Q
+			indent "Great, thank you."
+			;;
+		'e')
+			echo "Quitting...."
+			exit 1
+			;;
+	esac
+	else
+		indent "${bred}For $subject MID run_01, no uprun_01.nii file found.${recol}"
+	fi
+
+
+
+## Confirms that the resting & ANATOMY checks are completed
+## sed -i command removes the $subject from the .txt file that is assigned to the $list variable
+indent "Resting & Anat checks completed for $subject removed from $list"
+subj_left=$(wc -l $list | awk '{ print $1 }')
+indent "${blu}Number of subjects left to review in list: $subj_left ${recol}"
+sed -i "/${subject}/d" $list
+## Once subject is removed from the script, script asks whether or not to continue onto the next subect.
+echo -n "Continue on to next participant (y/n)? "
+	read cont
+	case $cont in
+		'y')
+			indent "Continuing....."
+			;;
+		'n')
+			echo
+	       		indent "Exiting image quality check script...."
+	      		exit 1
+			;;
+	esac
+done

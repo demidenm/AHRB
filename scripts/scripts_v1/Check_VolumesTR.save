@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# This script reads the image/header files for MID, Faces, Resting State & DTI
+# Using a combination of fslinfo and awk, dim1-dim4 + pixdim1-pixdim4 obtained
+# Values are stored in variables and confirmed whether correct.
+# Read warning is produced when value is out of range
+
+#Color formating
+        #reset text
+        RCol='\e[0m'
+        #Bold text
+        Bold='\e[1;30m'
+        #blue bold
+        BBlu='\e[1;34m'
+        #High intensity bold red
+        BIRed='\e[1;91m'
+        #Underline Red
+        URed='\e[4;31m'
+
+# Set work directory
+work_dir=/nfs/turbo/ahrb-data/work_dir
+
+
+# for each subject in the list of subjects
+for subject in $(cat /nfs/turbo/ahrb-data/Scripts/subjects.txt ) ; do
+ echo -e "${BBlu}Checking header information of runs for subject $subject${RCol}"
+    for run in 01 02 ; do
+	echo "......MID run_$run"
+##using fslinfo to pull values from run_##.nii, storing all 'dim ' using grep
+	dims=$(fslinfo $work_dir/$subject/func/mid/run_$run/run_$run.nii)
+##above stored in dims in long format. Pulling each value by columb #
+	dim1=$(echo $dims | awk '{ print $4 }')
+	echo "$dims1"
+	dim2=$(echo $dims | awk '{ print $6 }')
+       	echo "$dim2"
+	dim3=$(echo $dims | awk '{ print $8 }')
+        dim4=$(echo $dims | awk '{ print $10 }')
+        pixdim1=$(echo $dims | awk '{ print $12 }')
+        pixdim2=$(echo $dims | awk '{ print $14 }')
+        pixdim3=$(echo $dims | awk '{ print $16 }')
+        pixdim4=$(echo $dims | awk '{ print $18 }')
+	if [ "$dim1" != "90" ] ; then
+	echo -e "${BIRed}Z Slices $dim1 = Incorrect ${RCol}"
+	echo
+	else
+	echo "Z slices 90 = OK 90"
+	fi
+done
+done
+
+    # Now we print it nicely.  The first line contains the format, where %8d
+    # says to print the digits into 8 columns, %14s says print a string into
+    # 14 columns.  We do this for both the dims and pdims.
+
+    #printf "%6s %14s     dim1 = %8d    dim2 = %8d    dim3 = %8d\n" \
+    #       $subject "highres" $t1_dim1 $t1_dim2 $t1_dim3 >> ~/Projects/output/02_check_images.log
+    #printf "%6s %14s    pdim1 = %8f   pdim2 = %8f   pdim3 = %8f\n" \
+    #       $subject "highres" $t1_pdim1 $t1_pdim2 $t1_pdim3 >> ~/Projects/output/02_check_images.log
+
+    # Repeat for the inplane.nii.gz files
+#    dims=$(fslinfo $subject/anatomy/inplane.nii.gz | grep 'dim')
+#    t2_dim1=$(echo $dims | awk  '{ print $2 }')
+#    t2_dim2=$(echo $dims | awk  '{ print $4 }')
+#    t2_dim3=$(echo $dims | awk  '{ print $6 }')
+#    t2_pdim1=$(echo $dims | awk '{ print $10 }')
+#    t2_pdim2=$(echo $dims | awk '{ print $12 }')
+#    t2_pdim3=$(echo $dims | awk '{ print $14 }')
+
+#    printf "%6s %14s     dim1 = %8d    dim2 = %8d    dim3 = %8d\n" \
+#           $subject "inplane" $t2_dim1 $t2_dim2 $t2_dim3 >> ~/Projects/output/02_check_images.log
+#    printf "%6s %14s    pdim1 = %8f   pdim2 = %8f   pdim3 = %8f\n" \
+#           $subject "inplane" $t2_pdim1 $t2_pdim2 $t2_pdim3 >> ~/Projects/output/02_check_images.log
+
+    # Repeat for the functional (bold) files
+#    for task in 001 002 ; do
+#        for run in 001 002 003 ; do
+#        # We are generating the list, and there may be missing data, so
+#        # check for the existence of the file before running fslinfo
+#        if [ -s $subject/BOLD/task${task}_run${run}/bold.nii.gz ] ; then
+#            dims=$(fslinfo $subject/BOLD/task${task}_run${run}/bold.nii.gz | grep 'dim')
+#            bold_dim1=$(echo $dims | awk  '{ print $2 }')
+#            bold_dim2=$(echo $dims | awk  '{ print $4 }')
+#            bold_dim3=$(echo $dims | awk  '{ print $6 }')
+#            bold_dim4=$(echo $dims | awk  '{ print $8 }')
+#            bold_pdim1=$(echo $dims | awk '{ print $10 }')
+#            bold_pdim2=$(echo $dims | awk '{ print $12 }')
+#            bold_pdim3=$(echo $dims | awk '{ print $14 }')
+#            bold_pdim4=$(echo $dims | awk '{ print $16 }')
+#            printf "%6s %14s     dim1 = %8d    dim2 = %8d    dim3 = %8d   dim4 = %8d\n" \
+#            $subject "task${task}_run${run}" $bold_dim1 $bold_dim2 $bold_dim3 $bold_dim4 \
+#			 >> ~/Projects/output/02_check_images.log
+#            printf "%6s %14s    pdim1 = %8f   pdim2 = %8f   pdim3 = %8f  pdim4 = %8f\n" \
+#            $subject "task${task}_run${run}" $bold_pdim1 $bold_pdim2 $bold_pdim3 $bold_pdim4 \
+#			 >> ~/Projects/output/02_check_images.log
+#        fi
+#        done
+#    done
+#done
+

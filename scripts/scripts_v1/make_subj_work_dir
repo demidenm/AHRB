@@ -1,0 +1,55 @@
+#!/bin/bash
+		## This script written by [** Bennet Fauber - Uni. Mich  NII**]
+#script below for now to ' BEGINS HERE '
+	#if [ $# -lt 1 ] ; then
+	#    echo "This script requires a subject ID to run."
+	#    echo "Usage:"
+	#    echo
+	#    echo "$0 <subject ID number only>"
+	#    echo 
+	#    echo "For example, to create a workdir for dpk16ahr203704_04327, enter"
+	#    echo
+	#    echo $0 203704_04327
+	#    echo
+	#    echo "dpk16ahr will be prepended automatically"
+	#    echo
+	#    exit 1
+	#fi
+	#subject_id=$1
+
+
+##BEGINS HERE
+
+#creates fmri-lab variable $archieve and $work for work_dir to use downstream
+archive=/nfs/turbo/ahrb-data/fmri-lab
+work=/nfs/turbo/ahrb-data/work_dir
+
+# Set the umask explicitly here so that group write gets properly
+# set on the work_dir folders.
+umask 002
+
+#For each subject in the archieve director, it check directories (if [ -d ..]) and 
+#creates symbolic links (cp -rs) for each subject in $archive in the $work directory
+for  subject in $(ls $archive ) ; do
+	if [ -d $archive/$subject ] ; then
+    # Copy, recursively the folders and create symlinks to all files
+    # Indicate the participants to copy from list by which to cut, i.e., 9-20, adjust accordingly
+    #uncomment/comment out the below id variable as needed and replace all $subject variables thereafter with $id
+    	#id=$(echo $subject | cut -c 9-20);
+    echo
+    echo "Creating working directory for subject $subject. . ."
+    cp -rs $archive/$subject $work
+
+    echo "All done."
+    echo
+    ls -ld $work/$subject
+else
+    echo
+    echo "Whoops!  The folder you wanted copied"
+    echo
+    echo "    $archive/$subject"
+    echo
+    echo "does not exist."
+    exit 1
+fi
+done

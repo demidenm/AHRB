@@ -1,0 +1,36 @@
+#!/bin/bash
+
+source /nfs/turbo/ahrb-data/Scripts/source/ahrb_config
+ahrb=/nfs/turbo/ahrb-data
+
+# This script uses fslmaths command to create an ROI. 
+# Video directions on what/why this script uses, please see Andy Jahn's video
+		#  www.youtube.com/watch?v=E3L5AYo9D_o&feature=youtu.be
+
+# Specify the location of MNI template images we warped to
+temp=$ahrb/Demidenko/masks/Template_T1_IXI555_MNI152.nii
+
+# The script requires input of ROI voxel coordinates, x= y= z=, kernal/radius value, name for ROI. So FIVE values
+ 
+if [ $# -lt 5 ] ; then
+                echo
+                echo
+                echo "This script requires voxel coordinates, kernal size and name for roi"
+                echo "Example: to run script for voxel coordinates 60 104 61, kernal 5mm and roi name ACC"
+		echo "		enter: ./Create_ROI 60 104 61 5 ACC"
+else
+
+x=$1 
+y=$2 
+z=$3
+kern=$4
+roi=$5
+roi2=${roi}_sphere
+cd $ahrb/Demidenko/masks/unzip_reshape
+
+fslmaths $temp -mul 0 -add 1 -roi $x 1 $y 1 $z 1 0 1 $roi -odt float
+fslmaths $roi -kernel sphere $kern -fmean $roi2 -odt float 
+
+gunzip ${roi2}.nii.gz
+mv ${roi2}.nii ../$roi
+fi

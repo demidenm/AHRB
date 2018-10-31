@@ -1,0 +1,17 @@
+#!/bin/bash
+
+ahrb=/nfs/turbo/ahrb-data/archive_dir
+subj=$(ls $ahrb)
+
+
+for subj in $subj ; do
+	for task in mid faces ; do
+		for run in run_01 run_02 ; do
+	file=$(ls $ahrb/$subj/func/$task/$run/*.7 | awk 'NR==1{ print $1 }')
+	echo "$file"
+	gzip $file
+	echo "$file gzipped successfully!"
+		done
+	done
+done
+

@@ -27,3 +27,7 @@ This folder contains contents of the non-parameteric whole brain analysis. The w
 
 	To pull significant (p < .05) clusters:
 	>>> cluster --in=BWzstat1_104_5k_tfce_corrp_tstat2.nii.gz --thresh=.95
+
+
+
+Note: Within each folder, randomise produces the selected constrasts, e.g tstat1 - tstat6 (due to space, tstat5-tstat6 not included). Contrasts for each described in design.con files

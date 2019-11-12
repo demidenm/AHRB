@@ -1,0 +1,18 @@
+/ContrastName1	Avg < High 
+/ContrastName2	Avg > High 
+/ContrastName3	High Mean 
+/ContrastName4	Avg Mean 
+/ContrastName5	Age_pos_effect 
+/ContrastName6	Age_neg_effect 
+/NumWaves	3
+/NumContrasts	6
+/PPheights		1.415048e+00	1.415048e+00	1.468316e+00	1.477309e+00	5.000000e+00	5.000000e+00
+/RequiredEffect		1.116	1.116	0.887	0.713	1.433	1.433
+
+/Matrix
+-1.000000e+00 1.000000e+00 0.000000e+00 
+1.000000e+00 -1.000000e+00 0.000000e+00 
+0.000000e+00 1.000000e+00 0.000000e+00 
+1.000000e+00 0.000000e+00 0.000000e+00 
+0.000000e+00 0.000000e+00 1.000000e+00 
+0.000000e+00 0.000000e+00 -1.000000e+00 
